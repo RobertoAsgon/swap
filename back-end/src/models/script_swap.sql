@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     PRIMARY KEY (id)
 );
 
-INSERT INTO users (id, name, email, address) 
+INSERT INTO users (id, name, email, address, profile_picture) 
 VALUES ('1', 'UserTest', 'test@test.com.br', '0x64ff637fb478863b7468bc97d30a5bf3a428a1fd', '0x64ff637fb478863b7468bc97d30a5bf3a428a1fd');
 
 /* TABELA TRANSACTIONS*/
