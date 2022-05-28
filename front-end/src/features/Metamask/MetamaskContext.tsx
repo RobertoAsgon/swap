@@ -1,5 +1,8 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
 import { MetaMaskInpageProvider } from "@metamask/providers";
+import { UserDataAccount } from "../../services/userService/userModel";
+import UserService from "../../services/userService/userService";
+import HttpAdapter from "../../lib/HttpAdapter";
 
 declare global {
   interface Window {
@@ -7,19 +10,8 @@ declare global {
   }
 }
 
-class UserAccount {
-  constructor(partial: Partial<UserAccount>) {
-    Object.assign(this, partial);
-  }
-
-  public address = "";
-  public name = "";
-  public email = "";
-  public profile_picture = "";
-}
-
 interface IMetamaskContext {
-  userAccount: UserAccount;
+  userAccount: UserDataAccount;
   isConnectedAccount: boolean;
 }
 
@@ -30,13 +22,27 @@ interface Props {
 const MetamaskContext = createContext<Partial<IMetamaskContext>>({});
 
 const MetamaskProvider: React.FC<Props> = ({ children }) => {
-  const [userAccount, setUserAccount] = useState<UserAccount>(
-    new UserAccount({})
+  const [userAccount, setUserAccount] = useState<UserDataAccount>(
+    new UserDataAccount({})
   );
   const [isConnectedAccount, setIsConnectedAccount] = useState(false);
 
-  console.log("userAccount", userAccount);
-  console.log("isConnectedAccount", isConnectedAccount);
+  const getAccountData = async (accountAddress: string) => {
+    try {
+      const userConnection = (): UserService =>
+        new UserService(new HttpAdapter());
+
+      const dataAccount = await userConnection().getUserDataByAddress(
+        accountAddress
+      );
+
+      setUserAccount(dataAccount);
+
+      setIsConnectedAccount(true);
+    } catch (error) {
+      console.error("ERROR getAccountData:", error);
+    }
+  };
 
   const doConnectAccount = async () => {
     try {
@@ -48,16 +54,17 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
         return alert("Do you have multiple wallets installed?");
       }
 
-      await window.ethereum
+      const account = await window.ethereum
         .request({ method: "eth_requestAccounts" })
         .then((accounts) => {
-          const account: string = JSON.parse(JSON.stringify(accounts))[0];
-          if (Boolean(account)) {
-            return setUserAccount(new UserAccount({ address: account }));
-          }
+          const firstAccount: string = JSON.parse(JSON.stringify(accounts))[0];
+          setUserAccount(new UserDataAccount({ address: firstAccount }));
+          return firstAccount;
         });
 
-      setIsConnectedAccount(true);
+      if (Boolean(account)) {
+        await getAccountData(account);
+      }
     } catch (error) {
       console.error("ERROR doConnectAccount:", error);
     }
@@ -72,7 +79,7 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
         .then((accounts) => {
           const account: string = JSON.parse(JSON.stringify(accounts))[0];
           if (Boolean(account)) {
-            return new UserAccount({ address: account });
+            return new UserDataAccount({ address: account });
           }
         });
 
@@ -80,8 +87,7 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
         console.log("connectedAccount", connectedAccount);
         setUserAccount(connectedAccount);
         setIsConnectedAccount(true);
-      }
-      {
+      } else {
         await doConnectAccount();
       }
     } catch (error) {

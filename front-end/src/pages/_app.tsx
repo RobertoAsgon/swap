@@ -1,7 +1,7 @@
 import '../theme/globals.css'
 import Head from 'next/head'
 import { AppType } from 'next/dist/shared/lib/utils';
-import MetamaskProvider from '../features/MetamaskAuthorization/MetamaskAuthorizarionContext';
+import MetamaskProvider from '../features/Metamask/MetamaskContext';
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
