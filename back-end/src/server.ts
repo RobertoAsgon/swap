@@ -2,10 +2,24 @@
 import express from 'express'
 import { Router, Request, Response } from 'express';
 import 'dotenv/config'
+import cors from 'cors'
+
+class UserDataAccount {
+  constructor(partial: Partial<UserDataAccount>) {
+    Object.assign(this, partial);
+  }
+
+  public address = "";
+  public name = "";
+  public email = "";
+  public profile_picture = "";
+}
 
 const { connection } = require('./models/connection');
 
 const app = express();
+
+app.use(cors());
 
 const port = process.env.PORT || 3001;
 
@@ -33,7 +47,7 @@ route.get('/user/getUserByAddress', async (req: Request, res: Response) => {
 
   console.log('address',address)
   
-  const userByAddress = await connection()
+  const userByAddress: UserDataAccount = await connection()
   .then((schema:any) => schema
     .getTable('users')
     .select(['name', 'email', 'address', 'profile_picture'])
@@ -41,12 +55,16 @@ route.get('/user/getUserByAddress', async (req: Request, res: Response) => {
     .bind(`address`, address)
     .execute())
   .then((results:any) => results.fetchOne())
+  .then(([name, email, address, profile_picture]) => {
+    return new UserDataAccount({ name, address, email, profile_picture });
+  });
 
 
   // Cria usuário com dados resetado caso não haja registro da conta.
   // To Do Criar rota para atualizar os dados posteriormente.
+
   // To Do refatorar rota.
-  if(!userByAddress?.length) {
+  if(!userByAddress.address.length) {
     await connection()
     .then((db:any) => db
       .getTable('users')
@@ -55,7 +73,7 @@ route.get('/user/getUserByAddress', async (req: Request, res: Response) => {
       .execute());
   }
 
-  res.json({ message: 'Ok' })
+  res.json(userByAddress)
 })
 
 app.use(route)
