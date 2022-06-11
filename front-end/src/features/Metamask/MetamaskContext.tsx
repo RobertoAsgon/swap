@@ -13,6 +13,8 @@ declare global {
 interface IMetamaskContext {
   userAccount: UserDataAccount;
   isConnectedAccount: boolean;
+  shortAddress: string;
+  doConnectAccount: () => Promise<void>;
 }
 
 interface Props {
@@ -26,6 +28,13 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
     new UserDataAccount({})
   );
   const [isConnectedAccount, setIsConnectedAccount] = useState(false);
+
+  const { address } = userAccount;
+
+  const shortAddress = `${address?.slice(0, 5)}...${address?.slice(
+    address?.length - 4,
+    address?.length
+  )}`;
 
   const getAccountData = async (accountAddress: string) => {
     try {
@@ -44,7 +53,7 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  const doConnectAccount = async () => {
+  const doConnectAccount = useCallback(async () => {
     try {
       const provider = window?.ethereum;
 
@@ -68,7 +77,7 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
     } catch (error) {
       console.error("ERROR doConnectAccount:", error);
     }
-  };
+  }, []);
 
   const checkIfAccountIsAlreadyConnected = useCallback(async () => {
     try {
@@ -87,8 +96,6 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
         console.log("connectedAccount", connectedAccount);
         setUserAccount(connectedAccount);
         setIsConnectedAccount(true);
-      } else {
-        await doConnectAccount();
       }
     } catch (error) {
       console.error("ERROR checkIfAccountIsAlreadyConnected:", error);
@@ -104,6 +111,8 @@ const MetamaskProvider: React.FC<Props> = ({ children }) => {
       value={{
         userAccount,
         isConnectedAccount,
+        shortAddress,
+        doConnectAccount,
       }}
     >
       {children}

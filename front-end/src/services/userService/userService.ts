@@ -7,8 +7,9 @@ class UserService {
 
   async getUserDataByAddress(address: string): Promise<UserDataAccount> {
     try {
+      console.log('process.env.NEXT_PUBLIC_URL',process.env.NEXT_PUBLIC_URL)
       const { data } = await this.http.get<UserDataAccount>(
-        `${process.env.NEXT_PUBLIC_URL_BASE_SSD_ENV}/user/getUserByAddress`,
+        `${process.env.NEXT_PUBLIC_URL}/user/getUserByAddress`,
         {
           params: {
             address,
