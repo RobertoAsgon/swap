@@ -11,12 +11,34 @@ contract Transactions {
         string keyword
     );
 
+    struct TransferStruct {
+        address sender;
+        address receiver;
+        uint256 amount;
+        string message;
+        uint256 timestamp;
+        string keyword;
+    }
+
+    TransferStruct[] transactions;
+
     function publishTransaction(
         address payable receiver,
         uint256 amount,
         string memory message,
         string memory keyword
     ) public {
+        transactions.push(
+            TransferStruct(
+                msg.sender,
+                receiver,
+                amount,
+                message,
+                block.timestamp,
+                keyword
+            )
+        );
+
         emit Transfer(
             msg.sender,
             receiver,
@@ -25,5 +47,13 @@ contract Transactions {
             block.timestamp,
             keyword
         );
+    }
+
+    function getAllTransactions()
+        public
+        view
+        returns (TransferStruct[] memory)
+    {
+        return transactions;
     }
 }
